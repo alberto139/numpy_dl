@@ -1,6 +1,7 @@
 import numpy as np  
 from mnist import mnist
-import ops
+#from ops import ops
+from ops import ops
 import cv2
 from statistics import median
 
@@ -11,10 +12,16 @@ X_test = []
 # reshape training and testing images
 for i, img in enumerate(x_train):
     img = img.reshape(28, 28)
+    img = np.pad(img, 2, mode='constant')
+    img = img.reshape(32, 32, 1)
+    
     X_train.append(img)
 
 for i, img in enumerate(x_test):
     img = img.reshape(28, 28)
+    img = np.pad(img, 2, mode='constant')
+    img = img.reshape(32, 32, 1)
+    
     X_test.append(img)
 
 # Turn datasets into nupy arrays
@@ -26,8 +33,6 @@ X_train /= int(np.std(X_train))
 
 X_test -= int(np.mean(X_test))
 X_test /= int(np.std(X_test))
-
-
 
 
 # Formula to figure out output of Conv or Pool layer
@@ -98,8 +103,8 @@ def convolution(img, kernel_size, stride, padding='valid'):
     # LeNet also has valid padding
     padding = 'same'
 
-    if padding == 'same':
-        img = np.pad(img, pad_amount, mode='constant')
+    #if padding == 'same':
+    #    img = np.pad(img, pad_amount, mode='constant')
 
     input_size = len(img)
     pad_amount = 0
@@ -205,7 +210,7 @@ def sliding_kernel(img):
             cv2.imshow("kernel", kernel_img)
             cv2.imshow("output", output)
             cv2.waitKey(0)
-    print(output)
+    #print(output)
     print("Done reshaping")
 
 for img in X_train:
@@ -213,13 +218,50 @@ for img in X_train:
     #convolution(img)
     #sliding_kernel(img)
     #continue
-    img = np.pad(img, 2, mode='constant')
+    #break
+
+
+    
     print("Input shape: " + str(img.shape))
     cv2.imshow("input", img)
 
-    img = convolution(img, 5, 1, padding='valid')
-    print('C1 Shape: ' + str(img.shape))
+    C1 = ops.Conv2D(6, 5, 1, "C1")
+    img = C1.forward(img)
+    print("C1 shape: " + str(img.shape))
     cv2.imshow("C1", img[:,:,0])
+
+
+    S2 = ops.MaxPool(2, 2, "S2")
+    img = S2.forward(img)
+    print("S2 shape: " + str(img.shape))
+    cv2.imshow("S2", img[:,:,0])
+
+    C3 = ops.Conv2D(16, 5, 1, "C3")
+    img = C3.forward(img)
+    print("C3 shape: " + str(img.shape))
+    cv2.imshow("C3", img[:,:,0])
+
+    S4 = ops.MaxPool(2, 2, "S4")
+    img = S4.forward(img)
+    print("S4 shape: " + str(img.shape))
+    cv2.imshow("S4", img[:,:,0])
+
+    C5 = ops.Conv2D(120, 5, 1, "C3")
+    img = C5.forward(img)
+    print("C5 shape: " + str(img.shape))
+    cv2.imshow("C5", img[:,:,0])
+
+    F6 = ops.FullyConnected(120, 84, "F6")
+    img = F6.forward(img)
+    print("F6 shape: " + str(img.shape))
+    cv2.imshow("F6", img.reshape(84, 1))
+    print(img)
+
+
+    cv2.waitKey(0)
+
+    break
+
 
     img = maxpooling(img, 2, 2, padding='valid')
     print('S2 Shape: ' + str(img.shape))
@@ -232,5 +274,9 @@ for img in X_train:
     img = maxpooling(img, 2, 2, padding='valid')
     print('S4 Shape: ' + str(img.shape))
     cv2.imshow("S4", img)
+
+    img = convolution(img, 5, 1, padding='valid')
+    print('C5 Shape: ' + str(img.shape))
+    cv2.imshow("C5", img[:,:,0])
 
     cv2.waitKey(0)
