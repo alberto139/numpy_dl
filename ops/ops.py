@@ -112,10 +112,19 @@ class Softmax():
     def __inti__(self):
         pass
 
+    # Derivative of Softmax
+    # p_i *(1 - p_j) for i == j
+    # -p_j * p_i for i /= j
+
     def forward(self, inputs):
         inputs = inputs.ravel()
         exp = np.exp(inputs, dtype=np.float)
         self.out = exp/np.sum(exp)
         return self.out
 
-    def backward(self)
+    def forward_stable(self, inputs):
+        exp = np.exp(inputs - np.max(inputs))
+        return exp / np.sum(exp)
+
+    def backward(self):
+        None

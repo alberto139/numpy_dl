@@ -213,7 +213,23 @@ def sliding_kernel(img):
     #print(output)
     print("Done reshaping")
 
-for img in X_train:
+def cross_entropy(y, y_hat):
+
+    # One hot encode Y to create a distribution
+    y_probs = np.zeros(len(y_hat))
+    y_probs[y] = 1.0
+    #print("y: " + str(y_probs))
+    #print("y_hat: " + str(y_hat))
+    #print("y * log(y_hat) = " + str(-( y_probs * np.log(y_hat))))
+
+    return -np.sum(y_probs * np.log(y_hat))
+
+
+    
+    
+
+
+for i, img in enumerate(X_train):
 
     
     print("Input shape: " + str(img.shape))
@@ -223,8 +239,8 @@ for img in X_train:
     # Input: (32, 32, 1) Output: (28, 28, 6)
     C1 = ops.Conv2D(6, 5, 1, "C1")
     img = C1.forward(img)
-    #print("C1 shape: " + str(img.shape))
-    cv2.imshow("C1", img[:,:,0])
+    print("C1 shape: " + str(img.shape))
+    #cv2.imshow("C1", img[:,:,0])
 
     # ReLu Activation
     relu = ops.ReLu()
@@ -234,15 +250,15 @@ for img in X_train:
     # Input: (28, 28, 6) Output: (14, 14, 6)
     S2 = ops.MaxPool(2, 2, "S2")
     img = S2.forward(img)
-    #print("S2 shape: " + str(img.shape))
-    cv2.imshow("S2", img[:,:,0])
+    print("S2 shape: " + str(img.shape))
+    #cv2.imshow("S2", img[:,:,0])
 
     # Convolution layer
     # Input: (14, 14, 6) Output: (10, 10, 6)
     C3 = ops.Conv2D(16, 5, 1, "C3")
     img = C3.forward(img)
-    #print("C3 shape: " + str(img.shape))
-    cv2.imshow("C3", img[:,:,0])
+    print("C3 shape: " + str(img.shape))
+    #cv2.imshow("C3", img[:,:,0])
 
     # ReLu Activation
     relu = ops.ReLu()
@@ -273,30 +289,19 @@ for img in X_train:
 
     # Softmax
     softmax = ops.Softmax()
-    softmax_result = softmax.forward(img)
+    y_hat = softmax.forward(img)
 
-    print(sum(softmax_result))
+   
+
+    # Cross Entropy Loss
+    y = t_train[i]
+    #x = 0.01
+    #y_hat = np.array([x, x, x, x, x, .7, x, x, x, x])
+    loss = cross_entropy(y, y_hat)
+    
+    print("Loss: " + str(loss))
+
+
 
     cv2.waitKey(0)
-
     #break
-    continue
-
-
-    img = maxpooling(img, 2, 2, padding='valid')
-    print('S2 Shape: ' + str(img.shape))
-    cv2.imshow("S2", img)
-
-    img = convolution(img, 5, 1, padding='valid')
-    print('C3 Shape: ' + str(img.shape))
-    cv2.imshow("C3", img[:,:,0])
-
-    img = maxpooling(img, 2, 2, padding='valid')
-    print('S4 Shape: ' + str(img.shape))
-    cv2.imshow("S4", img)
-
-    img = convolution(img, 5, 1, padding='valid')
-    print('C5 Shape: ' + str(img.shape))
-    cv2.imshow("C5", img[:,:,0])
-
-    cv2.waitKey(0)
