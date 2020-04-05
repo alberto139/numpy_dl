@@ -11,8 +11,9 @@ class Conv2D:
         # Initialize weights
         #self.weights = np.zeros((self.num_filters, self.inputs_channel, self.kernel_size, self.kernel_size))
         # Random initialization of weights. In LeNet they should be a normal distribution between +-2.4 / num_filters
-        self.weights = np.random.rand(self.num_filters, self.kernel_size, self.kernel_size)
-        self.bias = np.random.rand(self.num_filters)
+        #self.weights = np.random.rand(self.num_filters, self.kernel_size, self.kernel_size)
+        self.weights = np.random.normal(loc = 0, scale=(2./(self.num_filters*self.kernel_size*self.kernel_size)), size=(self.num_filters,self.kernel_size,self.kernel_size))
+        self.bias = np.zeros(self.num_filters)
 
     def forward(self, inputs):
 
@@ -91,15 +92,30 @@ class FullyConnected:
     def __init__(self, num_inputs, num_outputs, name):
         self.num_inputs = num_inputs
         self.num_outputs = num_outputs
-        self.weights = np.random.rand(self.num_inputs, self.num_outputs)
-        self.bias = np.random.rand(self.num_outputs)
+        self.weights = np.random.normal(loc = 0, scale=(2./(self.num_inputs)), size=(self.num_inputs,self.num_outputs))
+        self.bias = np.zeros(self.num_outputs)
 
     def forward(self, inputs):
-        print(inputs)
-        print(self.weights)
         return np.dot(inputs, self.weights) + self.bias.T
 
 
 
 class ReLu:
-    pass
+    def __init__(self):
+        pass
+
+    def forward(self, inputs):
+        inputs[inputs < 0] = 0
+        return inputs
+
+class Softmax():
+    def __inti__(self):
+        pass
+
+    def forward(self, inputs):
+        inputs = inputs.ravel()
+        exp = np.exp(inputs, dtype=np.float)
+        self.out = exp/np.sum(exp)
+        return self.out
+
+    def backward(self)

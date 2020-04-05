@@ -215,52 +215,72 @@ def sliding_kernel(img):
 
 for img in X_train:
 
-    #convolution(img)
-    #sliding_kernel(img)
-    #continue
-    #break
-
-
     
     print("Input shape: " + str(img.shape))
     cv2.imshow("input", img)
 
+    # Convolution layer. 
+    # Input: (32, 32, 1) Output: (28, 28, 6)
     C1 = ops.Conv2D(6, 5, 1, "C1")
     img = C1.forward(img)
-    print("C1 shape: " + str(img.shape))
+    #print("C1 shape: " + str(img.shape))
     cv2.imshow("C1", img[:,:,0])
 
+    # ReLu Activation
+    relu = ops.ReLu()
+    img = relu.forward(img)
 
+    # Pooling Layer
+    # Input: (28, 28, 6) Output: (14, 14, 6)
     S2 = ops.MaxPool(2, 2, "S2")
     img = S2.forward(img)
-    print("S2 shape: " + str(img.shape))
+    #print("S2 shape: " + str(img.shape))
     cv2.imshow("S2", img[:,:,0])
 
+    # Convolution layer
+    # Input: (14, 14, 6) Output: (10, 10, 6)
     C3 = ops.Conv2D(16, 5, 1, "C3")
     img = C3.forward(img)
-    print("C3 shape: " + str(img.shape))
+    #print("C3 shape: " + str(img.shape))
     cv2.imshow("C3", img[:,:,0])
+
+    # ReLu Activation
+    relu = ops.ReLu()
+    img = relu.forward(img)
 
     S4 = ops.MaxPool(2, 2, "S4")
     img = S4.forward(img)
     print("S4 shape: " + str(img.shape))
-    cv2.imshow("S4", img[:,:,0])
+    #cv2.imshow("S4", img[:,:,0])
 
-    C5 = ops.Conv2D(120, 5, 1, "C3")
+    C5 = ops.Conv2D(120, 5, 1, "C5")
     img = C5.forward(img)
     print("C5 shape: " + str(img.shape))
-    cv2.imshow("C5", img[:,:,0])
+    #cv2.imshow("C5", img[:,:,0])
+
+    # ReLu Activation
+    relu = ops.ReLu()
+    img = relu.forward(img)
 
     F6 = ops.FullyConnected(120, 84, "F6")
     img = F6.forward(img)
     print("F6 shape: " + str(img.shape))
-    cv2.imshow("F6", img.reshape(84, 1))
-    print(img)
+    #cv2.imshow("F6", img.reshape(84, 1))
 
+    F7 = ops.FullyConnected(84, 10, "F6")
+    img = F7.forward(img)
+    print("F7 shape: " + str(img.shape))
+
+    # Softmax
+    softmax = ops.Softmax()
+    softmax_result = softmax.forward(img)
+
+    print(sum(softmax_result))
 
     cv2.waitKey(0)
 
-    break
+    #break
+    continue
 
 
     img = maxpooling(img, 2, 2, padding='valid')
