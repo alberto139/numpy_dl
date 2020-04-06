@@ -218,15 +218,9 @@ def cross_entropy(y, y_hat):
     # One hot encode Y to create a distribution
     y_probs = np.zeros(len(y_hat))
     y_probs[y] = 1.0
-    #print("y: " + str(y_probs))
-    #print("y_hat: " + str(y_hat))
-    #print("y * log(y_hat) = " + str(-( y_probs * np.log(y_hat))))
 
-    return -np.sum(y_probs * np.log(y_hat))
+    return -np.sum(y_probs * np.log(y_hat)), y_probs
 
-
-    
-    
 
 
 for i, img in enumerate(X_train):
@@ -297,11 +291,17 @@ for i, img in enumerate(X_train):
     y = t_train[i]
     #x = 0.01
     #y_hat = np.array([x, x, x, x, x, .7, x, x, x, x])
-    loss = cross_entropy(y, y_hat)
+    loss, y_probs = cross_entropy(y, y_hat)
     
     print("Loss: " + str(loss))
 
 
+    # Back Proppagation
+    dy = softmax.backward(y_probs)
+    #dy = dy.reshape(10, 1)
+    dy = F7.backward(dy)
 
-    cv2.waitKey(0)
-    #break
+
+
+    #cv2.waitKey(0)
+    break

@@ -95,8 +95,44 @@ class FullyConnected:
         self.weights = np.random.normal(loc = 0, scale=(2./(self.num_inputs)), size=(self.num_inputs,self.num_outputs))
         self.bias = np.zeros(self.num_outputs)
 
+        self.inputs = None
+        self.activation = None
+
+        self.learning_rate = 0.1
+
     def forward(self, inputs):
-        return np.dot(inputs, self.weights) + self.bias.T
+        self.inputs = inputs
+        self.activation = np.dot(inputs, self.weights) + self.bias.T
+        return self.activation.ravel()
+
+    def backward(self, dy):
+
+        self.inputs = np.expand_dims(self.inputs, axis = 1)
+        dy = np.expand_dims(dy, axis = 1)
+
+
+        print("inputs shape: " + str(self.inputs.shape))
+        print("weights shape: " + str(self.weights.shape))
+        print("b shape: " + str(self.bias.shape))
+        print("dy shape: " + str(dy.shape))
+        
+        
+        # Get the dot product of the error (dy) given the input
+        # This will give you the gradients corresponding to each weight
+        dw = np.dot(self.inputs, dy.T)
+        db = np.sum(dy)
+
+        print("dw shape: " + str(dw.shape))
+        print("db shape: " + str(db.shape))
+
+        print("w[0][0]: " + str(self.weights[0][0]))
+        print("dw[0][0]: " + str(dw[0][0]))
+        
+        self.weights -= self.learning_rate * dw
+        self.bias -= self.learning_rate * db
+
+        print("w[0][0]: " + str(self.weights[0][0]))
+        
 
 
 
@@ -110,21 +146,24 @@ class ReLu:
 
 class Softmax():
     def __inti__(self):
-        pass
+        self.activation = None
 
-    # Derivative of Softmax
-    # p_i *(1 - p_j) for i == j
-    # -p_j * p_i for i /= j
 
     def forward(self, inputs):
         inputs = inputs.ravel()
         exp = np.exp(inputs, dtype=np.float)
-        self.out = exp/np.sum(exp)
-        return self.out
+        self.activation = exp/np.sum(exp)
+        return self.activation
 
     def forward_stable(self, inputs):
         exp = np.exp(inputs - np.max(inputs))
         return exp / np.sum(exp)
 
-    def backward(self):
-        None
+    def backward(self, y_probs):
+        # Derivative of Softmax
+        # activation - labels
+        #print("activation: " + str(self.activation.shape))
+        #print("y_probs: " + str(y_probs.shape))
+        #print("Gradient: " + str((self.activation - y_probs).shape))
+        return self.activation - y_probs
+        
