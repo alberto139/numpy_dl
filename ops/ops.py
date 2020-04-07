@@ -1,8 +1,11 @@
 import numpy as np  
+import cupy as cp
 
 class Conv2D:
 
     def __init__(self, num_filters, kernel_size, stride, name):
+
+        self.name = name
 
         self.num_filters = num_filters
         self.kernel_size = kernel_size
@@ -51,6 +54,8 @@ class Conv2D:
 class MaxPool:
     def __init__(self, kernel_size, stride, name):
 
+        self.name = name
+
         self.kernel_size = kernel_size
         self.stride = stride
 
@@ -90,6 +95,8 @@ class MaxPool:
 class FullyConnected:
 
     def __init__(self, num_inputs, num_outputs, name):
+        self.name = name
+
         self.num_inputs = num_inputs
         self.num_outputs = num_outputs
         self.weights = np.random.normal(loc = 0, scale=(2./(self.num_inputs)), size=(self.num_inputs,self.num_outputs))
@@ -98,7 +105,7 @@ class FullyConnected:
         self.inputs = None
         self.activation = None
 
-        self.learning_rate = 0.1
+        self.learning_rate = 0.01
 
     def forward(self, inputs):
         self.inputs = inputs
@@ -107,45 +114,53 @@ class FullyConnected:
 
     def backward(self, dy):
 
+        #print("--- " + str(self.name) + " ---")
+        #print(dy)
+        self.inputs = self.inputs.ravel()
         self.inputs = np.expand_dims(self.inputs, axis = 1)
+
+
+        dy = dy.ravel()
         dy = np.expand_dims(dy, axis = 1)
-
-
-        print("inputs shape: " + str(self.inputs.shape))
-        print("weights shape: " + str(self.weights.shape))
-        print("b shape: " + str(self.bias.shape))
-        print("dy shape: " + str(dy.shape))
-        
+       
         
         # Get the dot product of the error (dy) given the input
         # This will give you the gradients corresponding to each weight
         dw = np.dot(self.inputs, dy.T)
         db = np.sum(dy)
+       
+        #print("---------------- dw:")
+        #print(dw[:2])
 
-        print("dw shape: " + str(dw.shape))
-        print("db shape: " + str(db.shape))
+        dx = np.dot(dy.T, self.weights.T)
+        dx = np.dot(self.weights, dy)
 
-        print("w[0][0]: " + str(self.weights[0][0]))
-        print("dw[0][0]: " + str(dw[0][0]))
         
-        self.weights -= self.learning_rate * dw
+        old_weights = np.copy(self.weights)
+        #print("---------------- old:")
+        #print(old_weights[:2])
+        self.weights += - self.learning_rate * dw
+        #print("---------------- new:")
+        #print(self.weights[:2])
         self.bias -= self.learning_rate * db
 
-        print("w[0][0]: " + str(self.weights[0][0]))
+        diff = (old_weights - self.weights)
+
+        return dx
         
-
-
 
 class ReLu:
     def __init__(self):
-        pass
+        self.name = "ReLu"
 
     def forward(self, inputs):
         inputs[inputs < 0] = 0
         return inputs
 
+
 class Softmax():
-    def __inti__(self):
+    def __init__(self):
+        self.name = "Softmax"
         self.activation = None
 
 
@@ -155,15 +170,16 @@ class Softmax():
         self.activation = exp/np.sum(exp)
         return self.activation
 
-    def forward_stable(self, inputs):
-        exp = np.exp(inputs - np.max(inputs))
-        return exp / np.sum(exp)
+    def forward(self, inputs):
+        exp = np.exp(inputs - np.max(inputs), dtype=np.float64)
+        self.activation = exp / np.sum(exp)
+        return self.activation
 
     def backward(self, y_probs):
         # Derivative of Softmax
         # activation - labels
-        #print("activation: " + str(self.activation.shape))
-        #print("y_probs: " + str(y_probs.shape))
-        #print("Gradient: " + str((self.activation - y_probs).shape))
+        #print("Softmax dy: " + str(self.activation - y_probs))
+        #print("Softmax activation: " + str(self.activation))
+        #print("Softmax y_probs: " + str(y_probs))
         return self.activation - y_probs
         

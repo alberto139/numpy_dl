@@ -1,32 +1,37 @@
 import numpy as np  
+#import cupy as np
 from mnist import mnist
 #from ops import ops
 from ops import ops
 import cv2
 from statistics import median
 
+import cupy as cp
+import time
+
 x_train, t_train, x_test, t_test = mnist.load()
 X_train = []
 X_test = []
 
 # reshape training and testing images
-for i, img in enumerate(x_train):
-    img = img.reshape(28, 28)
-    img = np.pad(img, 2, mode='constant')
-    img = img.reshape(32, 32, 1)
+#for i, img in enumerate(x_train):
+#    img = img.reshape(28, 28)
+#    img = np.pad(img, 2, mode='constant')
+#    img = img.reshape(32, 32, 1)
     
-    X_train.append(img)
+#    X_train.append(img)
 
-for i, img in enumerate(x_test):
-    img = img.reshape(28, 28)
-    img = np.pad(img, 2, mode='constant')
-    img = img.reshape(32, 32, 1)
+#for i, img in enumerate(x_test):
+#    img = img.reshape(28, 28)
+#    img = np.pad(img, 2, mode='constant')
+#    img = img.reshape(32, 32, 1)
     
-    X_test.append(img)
+#    X_test.append(img)
 
 # Turn datasets into nupy arrays
-X_train = np.array(X_train, dtype=np.float64)
-X_test = np.array(X_test, dtype=np.float64)
+# TODO: CHANGE THIS BACK TO UPPER CASE X
+X_train = np.array(x_train, dtype=np.float64)
+X_test = np.array(x_test, dtype=np.float64)
 
 X_train -= int(np.mean(X_train))
 X_train /= int(np.std(X_train))
@@ -221,87 +226,89 @@ def cross_entropy(y, y_hat):
 
     return -np.sum(y_probs * np.log(y_hat)), y_probs
 
+class Net():
+    def __init__(self):
+        self.layers = []
+        #self.layers.append(ops.Conv2D(6, 5, 1, "C1"))
+        #self.layers.append(ops.ReLu())
+        #self.layers.append(ops.MaxPool(2, 2, "S2"))
+        #self.layers.append(ops.Conv2D(16, 5, 1, "C3"))
+        #self.layers.append(ops.ReLu())
+        #self.layers.append(ops.MaxPool(2, 2, "S4"))
+        #self.layers.append(ops.Conv2D(120, 5, 1, "C5"))
+        #self.layers.append(ops.ReLu())
+        self.layers.append(ops.FullyConnected(784, 120, "F6"))
+        self.layers.append(ops.FullyConnected(120, 84, "F6"))
+        self.layers.append(ops.FullyConnected(84, 10, "F7"))
+        self.layers.append(ops.Softmax())
+
+    def forward(self, activation):
+        
+        # Forward pass through every layer
+        for layer in self.layers:
+            activation = layer.forward(activation)
+
+        return activation
+
+    def backward(self, dy):
+        #print("backward dy: " + str(dy))
+        for layer in list(reversed(self.layers))[:2]:
+            #print(layer.name)
+            #print(sum(dy.ravel()))
+            dy = layer.backward(dy)
+            #print(layer.name)
+            #print(sum(dy.ravel()))
+            #print(dy.shape)
+        
 
 
-for i, img in enumerate(X_train):
+# Initialize Network
+network = Net()
+import time
+batch_start_time = time.time()
 
+# Training
+n = 181
+epochs = 20000
+
+for e in range(epochs):
+    total_loss = 0
+    for i, img in enumerate(X_train):
+
+        #img = X_train[n]
+
+
+        ### Forward Pass ###
+        y_hat = network.forward(img)
+        #print("y_hat: " + str(y_hat))
+        #print("y_hat: " + str(list(y_hat).index(max(y_hat))))
+
+
+        ### Cross Entropy Loss ###
+        y = t_train[i]
+        loss, y = cross_entropy(y, y_hat)
+        #print("Coss_entropy y: " + str(y))
+        total_loss += loss
+
+
+
+
+        #print("Epoch " + str(e) + " Loss " + str(i) + "/" + str(len(X_train)) + ": " + str(loss)[:9])
     
-    print("Input shape: " + str(img.shape))
-    cv2.imshow("input", img)
-
-    # Convolution layer. 
-    # Input: (32, 32, 1) Output: (28, 28, 6)
-    C1 = ops.Conv2D(6, 5, 1, "C1")
-    img = C1.forward(img)
-    print("C1 shape: " + str(img.shape))
-    #cv2.imshow("C1", img[:,:,0])
-
-    # ReLu Activation
-    relu = ops.ReLu()
-    img = relu.forward(img)
-
-    # Pooling Layer
-    # Input: (28, 28, 6) Output: (14, 14, 6)
-    S2 = ops.MaxPool(2, 2, "S2")
-    img = S2.forward(img)
-    print("S2 shape: " + str(img.shape))
-    #cv2.imshow("S2", img[:,:,0])
-
-    # Convolution layer
-    # Input: (14, 14, 6) Output: (10, 10, 6)
-    C3 = ops.Conv2D(16, 5, 1, "C3")
-    img = C3.forward(img)
-    print("C3 shape: " + str(img.shape))
-    #cv2.imshow("C3", img[:,:,0])
-
-    # ReLu Activation
-    relu = ops.ReLu()
-    img = relu.forward(img)
-
-    S4 = ops.MaxPool(2, 2, "S4")
-    img = S4.forward(img)
-    print("S4 shape: " + str(img.shape))
-    #cv2.imshow("S4", img[:,:,0])
-
-    C5 = ops.Conv2D(120, 5, 1, "C5")
-    img = C5.forward(img)
-    print("C5 shape: " + str(img.shape))
-    #cv2.imshow("C5", img[:,:,0])
-
-    # ReLu Activation
-    relu = ops.ReLu()
-    img = relu.forward(img)
-
-    F6 = ops.FullyConnected(120, 84, "F6")
-    img = F6.forward(img)
-    print("F6 shape: " + str(img.shape))
-    #cv2.imshow("F6", img.reshape(84, 1))
-
-    F7 = ops.FullyConnected(84, 10, "F6")
-    img = F7.forward(img)
-    print("F7 shape: " + str(img.shape))
-
-    # Softmax
-    softmax = ops.Softmax()
-    y_hat = softmax.forward(img)
-
-   
-
-    # Cross Entropy Loss
-    y = t_train[i]
-    #x = 0.01
-    #y_hat = np.array([x, x, x, x, x, .7, x, x, x, x])
-    loss, y_probs = cross_entropy(y, y_hat)
-    
-    print("Loss: " + str(loss))
 
 
-    # Back Proppagation
-    dy = softmax.backward(y_probs)
-    #dy = dy.reshape(10, 1)
-    dy = F7.backward(dy)
+        ### Backward Pass ###
+
+
+        network.backward(y)
+        #print("Time taken in backprop: " + str(time.time() - start_time))
+
+        #cv2.imshow("img", img.reshape(28, 28))
+        #cv2.waitKey(0)
+    print("Epoch " + str(e) + " Loss: " + str(total_loss/len(X_train))[:9])
 
 
 
-    #cv2.waitKey(0)
-    break
+        
+
+        
