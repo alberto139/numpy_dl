@@ -237,9 +237,9 @@ class Net():
         #self.layers.append(ops.MaxPool(2, 2, "S4"))
         #self.layers.append(ops.Conv2D(120, 5, 1, "C5"))
         #self.layers.append(ops.ReLu())
-        self.layers.append(ops.FullyConnected(784, 120, "F6"))
-        self.layers.append(ops.FullyConnected(120, 84, "F6"))
-        self.layers.append(ops.FullyConnected(84, 10, "F7"))
+        self.layers.append(ops.FullyConnected(784, 30, "F6"))
+        self.layers.append(ops.FullyConnected(30, 30, "F6"))
+        self.layers.append(ops.FullyConnected(30, 10, "F7"))
         self.layers.append(ops.Softmax())
 
     def forward(self, activation):
@@ -273,6 +273,7 @@ epochs = 20000
 
 for e in range(epochs):
     total_loss = 0
+    correct = 0
     for i, img in enumerate(X_train):
 
         #img = X_train[n]
@@ -282,6 +283,7 @@ for e in range(epochs):
         y_hat = network.forward(img)
         #print("y_hat: " + str(y_hat))
         #print("y_hat: " + str(list(y_hat).index(max(y_hat))))
+       
 
 
         ### Cross Entropy Loss ###
@@ -290,6 +292,8 @@ for e in range(epochs):
         #print("Coss_entropy y: " + str(y))
         total_loss += loss
 
+        if list(y_hat).index(max(y_hat)) == list(y).index(max(y)):
+            correct +=1
 
 
 
@@ -305,7 +309,7 @@ for e in range(epochs):
 
         #cv2.imshow("img", img.reshape(28, 28))
         #cv2.waitKey(0)
-    print("Epoch " + str(e) + " Loss: " + str(total_loss/len(X_train))[:9])
+    print("Epoch " + str(e) + " Loss: " + str(total_loss/len(X_train))[:9] + " Acc: " + str(correct/len(X_train)))
 
 
 
