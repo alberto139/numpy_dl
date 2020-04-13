@@ -1,5 +1,5 @@
-import numpy as np  
-import cupy as cp
+import numpy  as np  
+import cupy #as np
 import cv2
 
 class Conv2D:
@@ -7,7 +7,7 @@ class Conv2D:
     def __init__(self, num_channels, num_filters, kernel_size, stride, name):
 
         self.name = name
-
+        self.learning_rate = 0.01
         self.num_filters = num_filters
         self.kernel_size = kernel_size
         self.stride = stride
@@ -22,7 +22,7 @@ class Conv2D:
 
     def forward(self, inputs):
 
-        print(self.name)
+        #print(self.name)
         self.inputs = inputs
         input_size = len(inputs)
         # Feauture map to be returned
@@ -43,41 +43,69 @@ class Conv2D:
 
                     #cv2.imshow('subimg', subimg)
                     #cv2.waitKey(0)
-                    print(self.weights[f,:,:,:].shape)
+            
                     output[r][c][f] = np.sum(subimg.T * self.weights[f,:,:,:]) + self.bias[f]
         
         # Returning feature map
         #print(output.shape)
-        output_img = output[:,:,0]
-        for f in range(output.shape[2]):
-            output_img = cv2.vconcat([output_img, output[:,:,f]])
-            #print(output[:,:,f])
-        cv2.imshow(self.name, output_img)
-        cv2.waitKey(0)
+        #if self.name == 'C1':
+        #    output_img = output[:,:,0]
+        #    for f in range(output.shape[2]):
+        #        output_img = cv2.vconcat([output_img, output[:,:,f]])
+                #print(output[:,:,f])
+        #    cv2.imshow(self.name, output_img)
+        #    cv2.waitKey(1)
         return output
 
-    def backward(self, inputs):
-        print("============= " + self.name + " =============")
-        print("weights: " + str(self.weights.shape))
-        print("inputs: " + str(self.inputs.shape))
-        print("dy: " + str(inputs.shape))
-        x = self.inputs
-        dy = inputs
+    def backward(self, dy):
+        #print("============= " + self.name + " =============")
+
         dw = np.zeros((self.weights.shape))
-        print("dw: " + str(dw.shape))
+        dx = np.zeros(self.inputs.shape)
+        db = np.zeros(self.bias.shape)
+
+        rows, cols, filters = dy.shape
+        #print(dy.shape)
+        
+
+        # Perform Convolution to determine dw and dx
+        for f in range(filters):
+            for r in range(rows):
+                for c in range(cols):
+                    subimg = self.inputs[r:r+self.kernel_size, c:c+self.kernel_size, :]
+
+                    # Valid Padding
+                    # If the subimg is smaller than the kernel size, then ignore it
+                    if subimg.shape[0] < self.kernel_size or subimg.shape[1] < self.kernel_size:
+                        continue
+
+                    dw[f,:,:,:]  += dy[r,c,f] * subimg.T
+                    dx[r:r+self.kernel_size, c:c+self.kernel_size, :] += dy[r,c, f] * self.weights[f,:,:,:].T
+        
+        # Calculate db
+        for f in range(filters):
+            db[f] = np.sum(dy[:, :, f])
 
 
-        # For each filter (or weight) 120 for C5
-        for f in range(len(self.weights)):
-            # For evey input
-            for d in range(len(self.inputs.shape[2])):
-                # For every row 5
-                for i, row in enumerate(range(len(self.inputs))):
-                    # For every col  5
-                    for j, col in enumerate(range(len(self.inputs[0]))):
-                        pass
-        
-        
+        # Update weights and biases
+        self.weights -= self.learning_rate * dw
+        self.bias -= self.learning_rate * db
+
+            
+        # Chain rule for the next (previous) layer
+        return dx
+
+
+    def extract(self):
+        return {self.name+'.weights':self.weights, self.name+'.bias':self.bias}
+
+    def feed(self, weights, bias):
+        self.weights = weights
+        self.bias = bias
+
+       
+    
+    
 
 class MaxPool:
     def __init__(self, kernel_size, stride, name):
@@ -92,6 +120,7 @@ class MaxPool:
     def forward(self, inputs):
 
         self.inputs = inputs
+        #print(inputs.shape)
         num_filters = inputs.shape[2]
         input_size = len(inputs)
         # Feauture map to be returned
@@ -107,7 +136,7 @@ class MaxPool:
 
                     # Sub section of the input to be convolved (cross-correlated)
                     # Essentialy a sliding window accross the input
-                    subimg = inputs[row : row + self.kernel_size, col : col + self.kernel_size]
+                    subimg = inputs[row : row + self.kernel_size, col : col + self.kernel_size, d]
 
                     # Valid Padding
                     # If the subimg is smaller than the kernel size, then ignore it
@@ -118,20 +147,25 @@ class MaxPool:
                     result = max(subimg.ravel())
                     output[i][j][d] = result
         
+
+        #output_img = output[:,:,0]
+        #for f in range(output.shape[2]):
+        #    output_img = cv2.vconcat([output_img, output[:,:,f]])
+            #print(output[:,:,f])
+
+        #print('diff: ' + str(output[:,:,5] - output[:,:,4]))
+        #cv2.imshow(self.name, output_img)
+        #cv2.waitKey(0)
+
         # Returning feature map
         return output
 
+    
 
     def backward(self, dy):
-        print("Max Pool backward pass")
-        print("weights: " + str(self.weights.shape))
-        print("inputs: " + str(self.inputs.shape))
-        print("dy: " + str(inputs.shape))
+
         num_filters = self.inputs.shape[2]
         input_size = len(self.inputs)
-        # Feauture map to be returned
-        output_size = int(  ((input_size - self.kernel_size) / self.stride ) + 1   )
-        output = np.zeros((output_size, output_size, num_filters))
 
         # Output will be the same shape as the input to the forward pass
         dx = np.zeros(self.inputs.shape)
@@ -155,11 +189,14 @@ class MaxPool:
                     # Max Pooling
                     #result = max(subimg.ravel())
                     #output[i][j][d] = result
-                    dx[i][j][d] = dy[i / self.kernel_size][ j / self.kernel_size ][d]
+                    dx[i][j][d] = dy[i // self.kernel_size][ j // self.kernel_size ][d]
         
         # Returning feature map
-        print(dx)
+        #print(dx)
         return dx
+
+    def extract(self):
+        return
 
 class FullyConnected:
 
@@ -205,8 +242,15 @@ class FullyConnected:
         self.bias -= self.learning_rate * db
 
         diff = (old_weights - self.weights)
-        print(dx.shape)
+        #print(dx.shape)
         return dx
+
+    def extract(self):
+        return {self.name+'.weights':self.weights, self.name+'.bias':self.bias}
+
+    def feed(self, weights, bias):
+        self.weights = weights
+        self.bias = bias
         
 
 class ReLu:
@@ -222,8 +266,11 @@ class ReLu:
     def backward(self, dy):
         dy = dy.reshape(self.inputs.shape)
         dy[self.inputs < 0] = 0
-        print(dy.shape)
+        #print(dy.shape)
         return dy
+
+    def extract(self):
+        return
 
 class Softmax():
     def __init__(self):
@@ -245,12 +292,10 @@ class Softmax():
     def backward(self, y_probs):
         # Derivative of Softmax
         # activation - labels
-        #print("Softmax dy: " + str(self.activation - y_probs))
-        #print("Softmax activation: " + str(self.activation))
-        #print("Softmax y_probs: " + str(y_probs))
-        print((self.activation - y_probs).shape)
         return self.activation - y_probs
-        
+
+    def extract(self):
+        return
 
 
 # Other usefull functions

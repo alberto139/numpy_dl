@@ -1,4 +1,5 @@
-import numpy as np  
+import numpy #as np  
+import numpy as np
 #import cupy as np
 from mnist import mnist
 #from ops import ops
@@ -6,8 +7,10 @@ from ops import ops
 import cv2
 from statistics import median
 
-import cupy as cp
+#import cupy as np
 import time
+
+import pickle
 
 from networks import FC_2Layer, LeNet5
 
@@ -68,16 +71,16 @@ def test_lenet():
     # Reshape training and testing images from 784 to 28 by 28
     # Pad images by 2 to get 32 x 32 images. This is done to further center the digits in the images.
     # It coul dbe done within the first Conv layer, but it's faster to do it only once during the data prep.
-    for i, img in enumerate(x_train[:5]):
+    for i, img in enumerate(x_train):
         img = img.reshape(28, 28)
-        img = np.pad(img, 2, mode='constant')
+        img = numpy.pad(img, 2, mode='constant')
         img = img.reshape(32, 32, 1)
         
         X_train.append(img)
 
-    for i, img in enumerate(x_test[:5]):
+    for i, img in enumerate(x_test):
         img = img.reshape(28, 28)
-        img = np.pad(img, 2, mode='constant')
+        img = numpy.pad(img, 2, mode='constant')
         img = img.reshape(32, 32, 1)
         
         X_test.append(img)
@@ -99,17 +102,22 @@ def test_lenet():
     network = LeNet5()
 
     # Train Network
-    epochs = 1
+    epochs = 10
+    start_time = time.time()
     for e in range(epochs):
         total_loss = 0
         correct = 0
-        for i, img in enumerate(X_train[:2]):
+        for i, img in enumerate(X_train):
+
+            #img = X_train[0]
+            y = t_train[i]
+            #y = t_train[0]
 
             ### Forward Pass ###
             y_hat = network.forward(img)
 
             ### Cross Entropy Loss ###
-            y = t_train[i]
+            
             loss, y = ops.cross_entropy(y, y_hat)
             total_loss += loss
 
@@ -120,7 +128,18 @@ def test_lenet():
             ### Backward Pass ###
             network.backward(y)
 
-            print("Sample " + str(i) + " Loss: " + str(loss)[:9] + " Correct: " + str(correct))
+            
+            if i % 10 == 0:
+                print("Sample " + str(i) + " Loss: " + str(loss)[:9] + " Correct: " + str(correct))
+                print("time elapsed: " + str(time.time() - start_time))
+
+                obj = []
+                for layer in network.layers:
+                    obj.append(layer.extract())
+
+                with open('weights_file.pkl', 'wb') as handle:
+                    pickle.dump(obj, handle, protocol=pickle.HIGHEST_PROTOCOL)
+
 
 
 
