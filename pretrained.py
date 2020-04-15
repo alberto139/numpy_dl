@@ -13,3 +13,5 @@ for d in b:
     if d:
         for key, val in d.items():
             print (key, val.shape)
+            print( np.max(val))
+            print( np.min(val))

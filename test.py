@@ -12,7 +12,7 @@ import time
 
 import pickle
 
-from networks import FC_2Layer, LeNet5
+from networks import FC_2Layer, LeNet5, Conv2_Layer
 
 
 # Test 2 Layer Fully Connected networks
@@ -58,6 +58,11 @@ def test_fc():
             ### Backward Pass ###
             network.backward(y)
 
+            if i % 5000 == 0:
+                print("Epoch " + str(e) + ", Sample " + str(i) + ", Loss: " + str(loss)[:9] + ", ACC: " + str(correct/(i+1)))
+                #print("time elapsed: " + str(time.time() - start_time))
+
+
         print("Epoch " + str(e) + " Loss: " + str(total_loss/len(X_train))[:9] + " Acc: " + str(correct/len(X_train)))
 
 
@@ -99,7 +104,10 @@ def test_lenet():
 
     
     # Initilize network
-    network = LeNet5()
+    # network = LeNet5()
+    network = Conv2_Layer()
+   
+
 
     # Train Network
     epochs = 10
@@ -109,9 +117,10 @@ def test_lenet():
         correct = 0
         for i, img in enumerate(X_train):
 
-            #img = X_train[0]
+            #n = 1 
+            #img = X_train[n]
             y = t_train[i]
-            #y = t_train[0]
+            #y = t_train[n]
 
             ### Forward Pass ###
             y_hat = network.forward(img)
@@ -122,29 +131,31 @@ def test_lenet():
             total_loss += loss
 
             # Calculate Accuracy
+            #try:
             if list(y_hat).index(max(y_hat)) == list(y).index(max(y)):
                 correct +=1
+            
 
             ### Backward Pass ###
             network.backward(y)
 
             
-            if i % 10 == 0:
-                print("Sample " + str(i) + " Loss: " + str(loss)[:9] + " Correct: " + str(correct))
+            if i % 100 == 0:
+                print("Epoch " + str(e) + ", Sample " + str(i) + ", Loss: " + str(loss)[:9] + ", ACC: " + str(correct/(i+1)))
                 print("time elapsed: " + str(time.time() - start_time))
 
                 obj = []
                 for layer in network.layers:
                     obj.append(layer.extract())
 
-                with open('weights_file.pkl', 'wb') as handle:
-                    pickle.dump(obj, handle, protocol=pickle.HIGHEST_PROTOCOL)
+                #with open('weights_file.pkl', 'wb') as handle:
+                    #pickle.dump(obj, handle, protocol=pickle.HIGHEST_PROTOCOL)
+                    #print("Saved weights...")
 
 
 
 
         print("Epoch " + str(e) + " Loss: " + str(total_loss/len(X_train))[:9] + " Acc: " + str(correct/len(X_train)))
-
 
 #test_fc()
 test_lenet()
