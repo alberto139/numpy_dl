@@ -14,7 +14,7 @@ class Conv2D:
         self.num_channels = num_channels
         # Initialize weights
         # Random initialization of weights. In LeNet they should be a normal distribution between +-2.4 / num_filters
-        self.weights = np.random.normal(loc = 0, scale=(1./(self.num_filters*self.kernel_size*self.kernel_size)), size=(self.num_filters, self.num_channels, self.kernel_size,self.kernel_size))
+        self.weights = np.random.normal(loc = 0, scale=(2./(self.num_filters*self.kernel_size*self.kernel_size)), size=(self.num_filters, self.num_channels, self.kernel_size,self.kernel_size))
         self.bias = np.zeros((self.num_filters, 1))
 
         self.inputs = None
@@ -49,15 +49,20 @@ class Conv2D:
         
         # Returning feature map
         #print(output.shape)
-        if self.name == 'C1':
-            output_img = output[:,:,0]
-            for f in range(output.shape[2]):
-                output_img = cv2.vconcat([output_img, output[:,:,f]])
+        #if self.name == 'C1':
+        #    output_img = output[:,:,0]
+        #    for f in range(output.shape[2]):
+        #        output_img = cv2.vconcat([output_img, output[:,:,f]])
                 #print(output[:,:,f])
-            cv2.imshow(self.name, output_img)
-            cv2.waitKey(1)
+        #    cv2.imshow(self.name, output_img)
+        #    cv2.waitKey(1)
 
-        #print("====== " + str(self.name) + " ======")
+        print("====== " + str(self.name) + " ======")
+        print("max weights: " + str(np.max(self.weights)))
+        print("min weights: " + str(np.min(self.weights)))
+
+        print("max bias: " + str(np.max(self.bias)))
+        print("min bias: " + str(np.min(self.bias)))
         #print("in: " + str(self.inputs.shape))
         #print("out: " + str(output.shape))
         return output
@@ -195,12 +200,13 @@ class FullyConnected:
         self.num_inputs = num_inputs
         self.num_outputs = num_outputs
         self.weights = np.random.normal(loc = 0, scale=(2./(self.num_inputs)), size=(self.num_inputs,self.num_outputs))
-        self.bias = np.zeros(self.num_outputs)
+        self.bias = np.zeros((self.num_outputs,1))
 
         self.inputs = None
         self.activation = None
 
-        self.learning_rate = 0.01
+        self.learning_rate = learning_rate
+
 
     def forward(self, inputs):
         self.inputs = inputs
@@ -210,7 +216,14 @@ class FullyConnected:
         self.activation = np.dot(inputs, self.weights) + self.bias.T
 
        
-        #print("out: " + str(self.activation.shape))
+        print("====== " + str(self.name) + " ======")
+        print("max weights: " + str(np.max(self.weights)))
+        print("min weights: " + str(np.min(self.weights)))
+        
+        print("max bias: " + str(np.max(self.bias)))
+        print("min bias: " + str(np.min(self.bias)))
+
+        print(self.bias)
         return self.activation.ravel()
 
     def backward(self, dy):
@@ -228,7 +241,8 @@ class FullyConnected:
         # Get the dot product of the error (dy) given the input
         # This will give you the gradients corresponding to each weight
         dw = np.dot(self.inputs, dy.T)
-        db = np.sum(dy)
+        db = np.sum(dy, axis=1, keepdims=True)
+       
 
         #dx = np.dot(dy.T, self.weights.T)
         dx = np.dot(self.weights, dy)
@@ -312,9 +326,10 @@ class Softmax():
         exp = np.exp(inputs, dtype=np.float)
         self.activation = exp/np.sum(exp)
 
-        #print("====== " + str(self.name) + " ======")
-        #print("in: " + str(inputs.shape))
-        #print("out: " + str(self.activation.shape))
+        print("====== " + str(self.name) + " ======")
+        print("max weights: " + str(np.max(self.activation)))
+        print("min weights: " + str(np.min(self.activation)))
+    
 
         return self.activation
 

@@ -69,7 +69,7 @@ class LeNet5():
 class Conv2_Layer():
     def __init__(self):
         self.layers = []
-        self.learning_rate = 0.01
+        self.learning_rate = 0.0005
 
         self.layers.append(ops.Conv2D(1, 10, 5, 1, self.learning_rate, "C1"))
         self.layers.append(ops.ReLu())
