@@ -41,7 +41,7 @@ class FC_2Layer():
 class LeNet5():
     def __init__(self):
         self.layers = []
-        self.learning_rate = 0.01
+        self.learning_rate = 0.0005
         self.layers.append(ops.Conv2D(1, 6, 5, 1, self.learning_rate, "C1"))
         self.layers.append(ops.ReLu())
         self.layers.append(ops.MaxPool(2, 2, "S2"))
@@ -72,7 +72,7 @@ class Conv2_Layer():
         self.learning_rate = 0.0005
 
         self.layers.append(ops.Conv2D(1, 10, 5, 1, self.learning_rate, "C1"))
-        self.layers.append(ops.ReLu())
+        self.layers.append(ops.Sigmoid())
         self.layers.append(ops.MaxPool(2, 2, "S2"))
         self.layers.append(ops.Flatten())
         self.layers.append(ops.FullyConnected(1960, 10, self.learning_rate, "F6"))

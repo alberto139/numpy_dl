@@ -104,11 +104,9 @@ def test_lenet():
 
     
     # Initilize network
-    # network = LeNet5()
-    network = Conv2_Layer()
+    network = LeNet5()
+    #network = Conv2_Layer()
    
-
-
     # Train Network
     epochs = 10
     start_time = time.time()
@@ -148,9 +146,9 @@ def test_lenet():
                 for layer in network.layers:
                     obj.append(layer.extract())
 
-                #with open('weights_file.pkl', 'wb') as handle:
-                    #pickle.dump(obj, handle, protocol=pickle.HIGHEST_PROTOCOL)
-                    #print("Saved weights...")
+                with open('weights_file.pkl', 'wb') as handle:
+                    pickle.dump(obj, handle, protocol=pickle.HIGHEST_PROTOCOL)
+                    print("Saved weights...")
 
 
 

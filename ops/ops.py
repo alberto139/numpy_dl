@@ -57,12 +57,12 @@ class Conv2D:
         #    cv2.imshow(self.name, output_img)
         #    cv2.waitKey(1)
 
-        print("====== " + str(self.name) + " ======")
-        print("max weights: " + str(np.max(self.weights)))
-        print("min weights: " + str(np.min(self.weights)))
+        #print("====== " + str(self.name) + " ======")
+        #print("max weights: " + str(np.max(self.weights)))
+        #print("min weights: " + str(np.min(self.weights)))
 
-        print("max bias: " + str(np.max(self.bias)))
-        print("min bias: " + str(np.min(self.bias)))
+        #print("max bias: " + str(np.max(self.bias)))
+        #print("min bias: " + str(np.min(self.bias)))
         #print("in: " + str(self.inputs.shape))
         #print("out: " + str(output.shape))
         return output
@@ -216,14 +216,14 @@ class FullyConnected:
         self.activation = np.dot(inputs, self.weights) + self.bias.T
 
        
-        print("====== " + str(self.name) + " ======")
-        print("max weights: " + str(np.max(self.weights)))
-        print("min weights: " + str(np.min(self.weights)))
+        #print("====== " + str(self.name) + " ======")
+        #print("max weights: " + str(np.max(self.weights)))
+        #print("min weights: " + str(np.min(self.weights)))
         
-        print("max bias: " + str(np.max(self.bias)))
-        print("min bias: " + str(np.min(self.bias)))
+        #print("max bias: " + str(np.max(self.bias)))
+        #print("min bias: " + str(np.min(self.bias)))
 
-        print(self.bias)
+        #print(self.bias)
         return self.activation.ravel()
 
     def backward(self, dy):
@@ -301,6 +301,23 @@ class ReLu:
     def extract(self):
         return
 
+
+class Sigmoid:
+    def __init__(self):
+        self.name = "Sigmoid"
+        self.inputs = None
+
+    def forward(self, inputs):
+        self.inputs = inputs
+        return (1.0 / (1 + np.exp(-self.inputs)))
+
+    def backward(self, dy):
+        dx = dy * self.inputs * (1 - self.inputs)
+        return dx
+
+    def extract(self):
+        return
+
 class Softmax():
     def __init__(self):
         self.name = "Softmax"
@@ -313,22 +330,22 @@ class Softmax():
         
         # CLIP THE INPUTS?
         # +- 5.0?
-        if np.max(inputs) > 4.0 or np.min(inputs) < -4.0:
-            inputs = inputs / np.max(inputs)
+        #if np.max(inputs) > 4.0 or np.min(inputs) < -4.0:
+        #    inputs = inputs / np.max(inputs)
 
-        if np.max(inputs) >= 100:
-            print('There might be something wrong: ' + str(inputs))
-            print("inputs: " + str(inputs))
-            print("exp: " + str(exp))
-            print("sum exp: " + str(np.sum(exp)))
-            print("activation: " + str(self.activation))
+        #if np.max(inputs) >= 100:
+            #print('There might be something wrong: ' + str(inputs))
+            #print("inputs: " + str(inputs))
+            #print("exp: " + str(exp))
+            #print("sum exp: " + str(np.sum(exp)))
+            #print("activation: " + str(self.activation))
         inputs = inputs.ravel()
         exp = np.exp(inputs, dtype=np.float)
         self.activation = exp/np.sum(exp)
 
-        print("====== " + str(self.name) + " ======")
-        print("max weights: " + str(np.max(self.activation)))
-        print("min weights: " + str(np.min(self.activation)))
+        #print("====== " + str(self.name) + " ======")
+        #print("max weights: " + str(np.max(self.activation)))
+        #print("min weights: " + str(np.min(self.activation)))
     
 
         return self.activation
