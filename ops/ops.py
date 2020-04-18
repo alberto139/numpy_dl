@@ -49,25 +49,26 @@ class Conv2D:
         
         # Returning feature map
         #print(output.shape)
-        #if self.name == 'C1':
-        #    output_img = output[:,:,0]
-        #    for f in range(output.shape[2]):
-        #        output_img = cv2.vconcat([output_img, output[:,:,f]])
+        if self.name == 'C1':
+            output_img = output[:,:,0]
+            for f in range(output.shape[2]):
+                output_img = cv2.vconcat([output_img, output[:,:,f]])
                 #print(output[:,:,f])
-        #    cv2.imshow(self.name, output_img)
-        #    cv2.waitKey(1)
+            cv2.imshow(self.name, output_img)
+            cv2.waitKey(1)
 
-        #print("====== " + str(self.name) + " ======")
-        #print("max weights: " + str(np.max(self.weights)))
-        #print("min weights: " + str(np.min(self.weights)))
+            print("====== " + str(self.name) + " ======")
+            print("max weights: " + str(np.max(self.weights)))
+            print("min weights: " + str(np.min(self.weights)))
 
-        #print("max bias: " + str(np.max(self.bias)))
-        #print("min bias: " + str(np.min(self.bias)))
-        #print("in: " + str(self.inputs.shape))
-        #print("out: " + str(output.shape))
+            #print("max bias: " + str(np.max(self.bias)))
+            #print("min bias: " + str(np.min(self.bias)))
+            #print("in: " + str(self.inputs.shape))
+            #print("out: " + str(output.shape))
         return output
 
     def backward(self, dy):
+        #print("====== " + str(self.name) + " Backward ======")
         dw = np.zeros((self.weights.shape))
         dx = np.zeros(self.inputs.shape)
         db = np.zeros(self.bias.shape)
@@ -93,8 +94,14 @@ class Conv2D:
             db[f] = np.sum(dy[:, :, f])
 
         # Update weights and biases
+        #print("self.weights")
+        #print(self.weights[0])
+        #print("dw")
+        #print(dw[0])
         self.weights -= self.learning_rate * dw
         self.bias -= self.learning_rate * db
+        #print("Updated waself.weights")
+        #print(self.weights[0])
             
         # Chain rule for the next (previous) layer
         return dx
@@ -228,7 +235,7 @@ class FullyConnected:
 
     def backward(self, dy):
 
-        #print("--- " + str(self.name) + " ---")
+        #print("--- " + str(self.name) + "  Backward ---")
         #print(dy)
         self.inputs = self.inputs.ravel()
         self.inputs = np.expand_dims(self.inputs, axis = 1)
@@ -249,9 +256,14 @@ class FullyConnected:
 
         
         old_weights = np.copy(self.weights)
+        #print("self.weights")
+        #print(self.weights[0])
+        #print("dw")
+        #print(dw[0])
         self.weights -= self.learning_rate * dw
         self.bias -= self.learning_rate * db
-
+        #print('updated weights')
+        #print(self.weights[0])
         
         return dx
 
@@ -278,6 +290,7 @@ class Flatten:
 
     def backward(self, dy):
         return dy.reshape(self.C, self.W, self.H)
+
     def extract(self):
         return
 
@@ -289,12 +302,14 @@ class ReLu:
 
     def forward(self, inputs):
         inputs[inputs < 0] = 0
+        inputs[inputs > 1] = 1
         self.inputs = inputs
         return self.inputs
 
     def backward(self, dy):
         dy = dy.reshape(self.inputs.shape)
         dy[self.inputs < 0] = 0
+        dy[self.inputs > 1] = 1
         #print(dy.shape)
         return dy
 
@@ -309,10 +324,16 @@ class Sigmoid:
 
     def forward(self, inputs):
         self.inputs = inputs
-        return (1.0 / (1 + np.exp(-self.inputs)))
+        self.activation = (1.0 / (1 + np.exp(-self.inputs) ))
+        return self.activation
 
     def backward(self, dy):
-        dx = dy * self.inputs * (1 - self.inputs)
+        #dx = dy * self.inputs * (1 - self.inputs)
+        dx = (dy * (1.0 - dy))
+        #ddot = (1 - f) * f # gradient on dot variable, using the sigmoid gradient derivation
+        #dx = (1 - self.activation) * self.activation
+        #print("Sigmoid backward: " + str(dx))
+        #print(dx)
         return dx
 
     def extract(self):
@@ -359,6 +380,7 @@ class Softmax():
     def backward(self, y_probs):
         # Derivative of Softmax
         # activation - labels
+        #print("Softmax Backward: " + str(self.activation - y_probs))
         return self.activation - y_probs
 
     def extract(self):
