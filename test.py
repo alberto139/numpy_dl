@@ -37,7 +37,7 @@ def test_fc():
 
 
     # Train Network
-    epochs = 20000
+    epochs = 20
     for e in range(epochs):
         total_loss = 0
         correct = 0
