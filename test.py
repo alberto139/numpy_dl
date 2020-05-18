@@ -7,9 +7,10 @@ from ops import ops
 import cv2
 from statistics import median
 
+import visualizations as vis
+
 #import cupy as np
 import time
-
 import pickle
 
 from networks import FC_2Layer, LeNet5, Conv2_Layer, Conv3_Layer, Conv4_Layer
@@ -217,9 +218,14 @@ def load_mnist():
 
     return X_train, X_test, t_train, t_test
 
+def vis_demo():
+    x_train, x_test, t_train, t_test = load_mnist()
+    vis.maxpool(x_train[0])
 
+
+vis_demo()
 #test_fc()
 #test_lenet()
 
 #test_pretrained()
-train_lenet()
+#train_lenet()
