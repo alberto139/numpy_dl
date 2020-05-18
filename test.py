@@ -78,7 +78,7 @@ def train_lenet():
     #network = Conv4_Layer()
    
     # Train Network
-    epochs = 100
+    epochs = 20
     start_time = time.time()
     for e in range(epochs):
         total_loss = 0

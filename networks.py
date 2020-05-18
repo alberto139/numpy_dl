@@ -26,13 +26,13 @@ class LeNet5():
         self.layers = []
         self.learning_rate = 0.1 #0.0005 in the paper
         self.layers.append(ops.Conv2D(1, 6, 5, 1, self.learning_rate, "C1"))
-        self.layers.append(ops.ReLu())
+        self.layers.append(ops.ReLu()) # Sigmoin in the paper
         self.layers.append(ops.MaxPool(2, 2, "S2"))
         self.layers.append(ops.Conv2D(6, 16, 5, 1, self.learning_rate, "C3"))
-        self.layers.append(ops.ReLu())
+        self.layers.append(ops.ReLu()) # Sigmoin in the paper
         self.layers.append(ops.MaxPool(2, 2, "S4"))
         self.layers.append(ops.Conv2D(16, 120, 5, 1, self.learning_rate, "C5"))
-        self.layers.append(ops.ReLu())
+        self.layers.append(ops.ReLu()) # Sigmoin in the paper
         self.layers.append(ops.FullyConnected(120, 84, self.learning_rate, "F6"))
         self.layers.append(ops.FullyConnected(84, 10, self.learning_rate, "F7"))
         self.layers.append(ops.Softmax())
