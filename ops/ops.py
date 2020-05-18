@@ -14,7 +14,7 @@ class Conv2D:
         self.num_channels = num_channels
         # Initialize weights
         # Random initialization of weights. In LeNet they should be a normal distribution between +-2.4 / num_filters
-        self.weights = np.random.normal(loc = 0, scale=(2./(self.num_filters*self.kernel_size*self.kernel_size)), size=(self.num_filters, self.num_channels, self.kernel_size,self.kernel_size))
+        self.weights = np.random.normal(loc = 0, scale=(1./(self.num_filters*self.kernel_size*self.kernel_size)), size=(self.num_filters, self.num_channels, self.kernel_size,self.kernel_size))
         self.bias = np.zeros((self.num_filters, 1))
 
         self.inputs = None
@@ -49,17 +49,19 @@ class Conv2D:
         
         # Returning feature map
         #print(output.shape)
-        if self.name == 'C1':
-            output_img = output[:,:,0]
-            for f in range(output.shape[2]):
-                output_img = cv2.vconcat([output_img, output[:,:,f]])
-                #print(output[:,:,f])
-            cv2.imshow(self.name, output_img)
-            cv2.waitKey(1)
+        #if self.name == 'C1':
+        output_img = output[:,:,0]
+        for f in range(output.shape[2]):
+            output_img = cv2.vconcat([output_img, output[:,:,f]])
+            #print(output[:,:,f])
+        output_img = output_img / np.max(output_img)
+        output_img = cv2.resize(output_img, (output_img.shape[1] * 2, output_img.shape[0] * 2))
+        cv2.imshow(self.name, output_img)
+        cv2.waitKey(1)
 
-            print("====== " + str(self.name) + " ======")
-            print("max weights: " + str(np.max(self.weights)))
-            print("min weights: " + str(np.min(self.weights)))
+        #print("====== " + str(self.name) + " ======")
+        #print("max weights: " + str(np.max(self.weights)))
+        #print("min weights: " + str(np.min(self.weights)))
 
             #print("max bias: " + str(np.max(self.bias)))
             #print("min bias: " + str(np.min(self.bias)))
@@ -98,8 +100,10 @@ class Conv2D:
         #print(self.weights[0])
         #print("dw")
         #print(dw[0])
+        old_weights = np.copy(self.weights)
         self.weights -= self.learning_rate * dw
         self.bias -= self.learning_rate * db
+        #print("diff: " + str(self.weights[0] - old_weights[0]))
         #print("Updated waself.weights")
         #print(self.weights[0])
             
@@ -297,22 +301,16 @@ class Flatten:
 
 class ReLu:
     def __init__(self):
-        self.name = "ReLu"
-        self.inputs = None
-
+        pass
     def forward(self, inputs):
-        inputs[inputs < 0] = 0
-        inputs[inputs > 1] = 1
         self.inputs = inputs
-        return self.inputs
-
+        ret = inputs.copy()
+        ret[ret < 0] = 0
+        return ret
     def backward(self, dy):
-        dy = dy.reshape(self.inputs.shape)
-        dy[self.inputs < 0] = 0
-        dy[self.inputs > 1] = 1
-        #print(dy.shape)
-        return dy
-
+        dx = dy.copy()
+        dx[self.inputs < 0] = 0
+        return dx
     def extract(self):
         return
 
@@ -322,17 +320,35 @@ class Sigmoid:
         self.name = "Sigmoid"
         self.inputs = None
 
+    def sigmoid_backend(x):
+        """Applies the sigmoid function elementwise."""
+        return np.where(x >= 0, 1 / (1 + np.exp(-x)), np.exp(x) / (1 + np.exp(x)))
+
     def forward(self, inputs):
         self.inputs = inputs
-        self.activation = (1.0 / (1 + np.exp(-self.inputs) ))
+        x = inputs
+        #self.activation = (1.0 / (1 + np.exp(-self.inputs) ))
+        self.activation = np.where(x >= 0, 1 / (1 + np.exp(-x)), np.exp(x) / (1 + np.exp(x)))
+        print("Sigmoid Forward max: " + str(np.max(self.activation)))
+        print("Sigmoid Forward min: " + str(np.min(self.activation)))
         return self.activation
 
     def backward(self, dy):
-        #dx = dy * self.inputs * (1 - self.inputs)
-        dx = (dy * (1.0 - dy))
+        #dx = dy * (self.inputs * (1 - self.inputs))
+
+
+        def sigmoid_backend(x):
+            """Applies the sigmoid function elementwise."""
+            return np.where(x >= 0, 1 / (1 + np.exp(-x)), np.exp(x) / (1 + np.exp(x)))
+
+        dx = sigmoid_backend(dy) * (1 - sigmoid_backend(dy))
+        
+        if dx.shape[1] == 1:
+            dx = np.expand_dims(dx, axis = 1)
+        #dx = (dy * (1.0 - dy)) # WRONG SHAPE
         #ddot = (1 - f) * f # gradient on dot variable, using the sigmoid gradient derivation
-        #dx = (1 - self.activation) * self.activation
-        #print("Sigmoid backward: " + str(dx))
+        #dx = (1 - self.activation) * self.activation # WRONG Makes everything the same
+        #print("Sigmoid Backward: " + str(dx))
         #print(dx)
         return dx
 
