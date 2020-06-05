@@ -35,7 +35,7 @@ Left: Image on which max pooling is being performed with the sliding 3x3 kernel 
 </p>
 
 ## Quirks and Known Issues
-This project does not aim to be a faithfull re-implementation of the LeNet-5 architecture as described in the paper so there are a few differences:
+This project does not aim to be a faithful re-implementation of the LeNet-5 architecture as described in the paper so there are a few differences:
 - The padding of the MNIST images is done in the data pre-processing stage and not by the first layer of the network.
 - A cross-entropy loss function is used instead of the one described in the paper.
 - ReLu activation is used instead of Sigmoid.
@@ -47,6 +47,6 @@ This project currently has a few issues that might be caused by the changes ment
 2. Exploding Gradients with ReLu activation
 3. Very different weight sizes between layers (might be normal?)
 
-If you have any recomendations or insight as the the cause of these issues, please feel free to submit a pull request or issue. Thanks!
+If you have any recommendations or insight as the the cause of these issues, please feel free to submit a pull request or issue. Thanks!
 
 

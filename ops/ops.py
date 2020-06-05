@@ -12,12 +12,14 @@ class Conv2D:
         self.kernel_size = kernel_size
         self.stride = stride
         self.num_channels = num_channels
-        # Initialize weights
-        # Random initialization of weights. In LeNet they should be a normal distribution between +-2.4 / num_filters
-        self.weights = np.random.normal(loc = 0, scale=(1./(self.num_filters*self.kernel_size*self.kernel_size)), size=(self.num_filters, self.num_channels, self.kernel_size,self.kernel_size))
+        # Weight initialization according to Andrew Ng's Deeplearning.ai course: https://www.youtube.com/watch?v=s2coXdufOzE
+        self.weights = np.random.random((self.num_filters, self.num_channels, self.kernel_size,self.kernel_size)) * np.sqrt((2. / (self.num_channels * self.kernel_size * self.kernel_size)))
         self.bias = np.zeros((self.num_filters, 1))
 
         self.inputs = None
+
+        print(self.name + " min weight: " + str(min(self.weights.ravel())))
+        print(self.name + " max weight: " + str(max(self.weights.ravel())))
 
 
     def forward(self, inputs):
@@ -210,7 +212,10 @@ class FullyConnected:
 
         self.num_inputs = num_inputs
         self.num_outputs = num_outputs
-        self.weights = np.random.normal(loc = 0, scale=(2./(self.num_inputs)), size=(self.num_inputs,self.num_outputs))
+        self.weights = np.random.random((self.num_inputs,self.num_outputs)) * np.sqrt((2. / (self.num_inputs * self.num_outputs)))
+        print(self.name + " min weight: " + str(min(self.weights.ravel())))
+        print(self.name + " max weight: " + str(max(self.weights.ravel())))
+        
         self.bias = np.zeros((self.num_outputs,1))
 
         self.inputs = None

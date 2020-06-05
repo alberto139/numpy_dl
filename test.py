@@ -6,6 +6,7 @@ from mnist import mnist
 from ops import ops
 import cv2
 from statistics import median
+import utils
 
 import visualizations as vis
 
@@ -69,26 +70,30 @@ def test_fc():
 
 def train_lenet():
 
-    X_train, X_test, t_train, t_test = load_mnist()
+    X_train, X_test, t_train, t_test = utils.load_mnist('square')
     
     # Initilize network
     #network = LeNet5()
     #network = Conv2_Layer()
     network = Conv3_Layer()
+    #return
     #network = Conv4_Layer()
    
     # Train Network
     epochs = 20
+    batch_size = 100
+
     start_time = time.time()
     for e in range(epochs):
+
         total_loss = 0
         correct = 0
+        correct_this_batch = 0
+
         for i, img in enumerate(X_train):
 
-            #n = 1 
-            #img = X_train[n]
             y = t_train[i]
-            #y = t_train[n]
+  
 
             ### Forward Pass ###
             y_hat = network.forward(img)
@@ -99,19 +104,20 @@ def train_lenet():
             total_loss += loss
 
             # Calculate Accuracy
-            #try:
             if list(y_hat).index(max(y_hat)) == list(y).index(max(y)):
                 correct +=1
+                correct_this_batch += 1
             
 
             ### Backward Pass ###
             network.backward(y)
 
             
-            if i % 100 == 0:
-                print("Epoch " + str(e) + ", Sample " + str(i) + ", Loss: " + str(loss)[:9] + ", ACC: " + str(correct/(i+1)))
+            if i % batch_size == 0:
+                print("Epoch " + str(e) + ", Sample " + str(i) + ", Loss: " + str(loss)[:6] + ", ACC: " + str(correct/(i+1))[0:6] + ", Batch ACC: " + str(correct_this_batch/batch_size))
                 print("Learning Rate: " + str(network.learning_rate))
                 print("time elapsed: " + str(time.time() - start_time))
+                correct_this_batch = 0
                 
                 #if i % 1000 == 0:    
                 #    network.learning_rate = network.learning_rate * 0.98
@@ -181,51 +187,16 @@ def test_pretrained():
             print(correct / (i+1))
 
 
-def load_mnist():
-    # Get MNIST dataset
-    x_train, t_train, x_test, t_test = mnist.load()
-    X_train = []
-    X_test = []
 
-    # Reshape training and testing images from 784 to 28 by 28
-    # Pad images by 2 to get 32 x 32 images. This is done to further center the digits in the images.
-    # It coul dbe done within the first Conv layer, but it's faster to do it only once during the data prep.
-    for i, img in enumerate(x_train):
-        img = img.reshape(28, 28)
-        img = numpy.pad(img, 2, mode='constant')
-        img = img.reshape(32, 32, 1)
-        
-        X_train.append(img)
-
-    for i, img in enumerate(x_test):
-        img = img.reshape(28, 28)
-        img = numpy.pad(img, 2, mode='constant')
-        img = img.reshape(32, 32, 1)
-        
-        X_test.append(img)
-
-    # Turn datasets into nupy arrays
-    X_train = np.array(X_train, dtype=np.float64)
-    X_test = np.array(X_test, dtype=np.float64)
-
-
-    # Normalize dataset to have zero mean
-    X_train -= int(np.mean(X_train))
-    X_train /= int(np.std(X_train))
-
-    X_test -= int(np.mean(X_test))
-    X_test /= int(np.std(X_test))
-
-    return X_train, X_test, t_train, t_test
 
 def vis_demo():
     x_train, x_test, t_train, t_test = load_mnist()
     vis.maxpool(x_train[0])
 
 
-vis_demo()
+#vis_demo()
 #test_fc()
 #test_lenet()
 
 #test_pretrained()
-#train_lenet()
+train_lenet()
